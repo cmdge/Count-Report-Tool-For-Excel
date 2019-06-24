@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} ReportTool 
    Caption         =   "Report"
-   ClientHeight    =   6600
+   ClientHeight    =   6108
    ClientLeft      =   108
    ClientTop       =   456
-   ClientWidth     =   16968
+   ClientWidth     =   11064
    OleObjectBlob   =   "ReportTool.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -16,34 +16,29 @@ Attribute VB_Exposed = False
 Option Explicit
 Private eventHandlerCollection As New Collection
 
-Private Sub ListBox1_Click()
-End Sub
+
 
 'Create check box dynamically
 Private Sub UserForm_Initialize()
 
-    Dim curRow      As Long
-    Dim LastColumn  As Long
-    Dim i           As Long
-    Dim chkbox      As MSForms.checkbox
-    Dim d As Variant
+    Dim intcurRow As Long, intLastColumn  As Long
+    Dim i As Long
+    Dim chkbox As MSForms.CheckBox
     
-    curRow = 1 'Set row index
+    intcurRow = 1 'Set row index
 
-    LastColumn = Worksheets("Sheet1").Cells(curRow, Columns.count).End(xlToLeft).Column 'Find the last non-blank cell in row 1
+    intLastColumn = Worksheets("Sheet1").Cells(intcurRow, Columns.Count).End(xlToLeft).Column 'Find the last non-blank cell in row 1
     
 
     'Displays the check box with its appropriate check box caption
-    For i = 1 To LastColumn
-        Set chkbox = Me.Controls.Add("Forms.CheckBox.1", "CheckBox_" & i)
-        chkbox.Caption = Worksheets("Sheet1").Cells(curRow, i).Value
+    For i = 1 To intLastColumn
+        Set chkbox = Me.Controls.Add("Forms.CheckBox.1", "CheckBox" & i)
+        chkbox.Caption = Worksheets("Sheet1").Cells(intcurRow, i).Value
         
         'Sets the position of check box
         chkbox.Left = 25
         chkbox.Top = 46 + ((i - 1) * 20)
     Next i
-    
-    'Debug.Print
 
     'Individual click events to dynamic checkboxes on userform
 
@@ -72,30 +67,62 @@ Private Sub UserForm_Initialize()
         MyDate = DateAdd("m", 1, MyDate)
     
     Next
-
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     
 End Sub
-Private Sub ComboBox1_Change()
-'Unload ReportTool
-End Sub
+
 Private Sub ComboBox1_AfterUpdate()
+
     stDate = ComboBox1.Value
-
+    
 End Sub
-Private Sub ComboBox2_Change()
 
-End Sub
 Private Sub ComboBox2_AfterUpdate()
     enDate = ComboBox2.Value
 End Sub
 
-
-
 Private Sub CommandButton1_Click()
-
-    Call filterDate(stDate, enDate)
-    Call getResult(strColLetter, varOffsetAddress, varLastCell)
-
     
+    
+   
+    Dim j As Long
+    ctlCaption = ""
+    
+    For Each ctl In Me.Controls
+        If TypeOf ctl Is MSForms.CheckBox Then
+            If Me.Controls(ctl.Name).Value = True Then
+                ctlCaption = ctlCaption & "~" & ctl.Caption
+                j = j + 1
+            End If
+        End If
+    Next
+    ctlCaption = ctlCaption
+    
+    If ComboBox1 = vbNullString Or ComboBox2 = vbNullString Or j = 0 Then
+        MsgBox "All Fields are Required!"
+        ComboBox1.SetFocus
+    Else
+
+
+        'If ticked checkbox is = 1
+        If j = 1 Then
+            Call filterDate(stDate, enDate)
+            ReportTool.ListBox1.Clear
+            Call getResult(strColLetter, varOffsetAddress, varLastCell)
+            
+        End If
+
+        'If ticked checkbox is = 2
+        If j = 2 Then
+            Call filterDate(stDate, enDate)
+            ReportTool.ListBox1.Clear
+            Call getCOuntOfTwoColumn(ctlCaption)
+        End If
+        
+        'If ticked checkbox is > 2
+        If j > 2 Then
+            MsgBox "Number of check box exceed!"
+        End If
+        
+    End If
+        
 End Sub
